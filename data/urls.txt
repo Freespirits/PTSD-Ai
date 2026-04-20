@@ -1,0 +1,8 @@
+# רשימת URLs לסקרייפינג
+# פורמט: URL אחד בכל שורה, מתעלם מתגובות (#) ומשורות ריקות
+# הרץ: python -m ingestion.scrape_urls
+
+# דוגמאות (החלף ב-URLs האמיתיים שאתה רוצה לכלול):
+# https://www.natal.org.il/articles/ptsd-explained
+# https://www.idfwo.org.il/חינוך-וטיפול-בפוסט-טראומה
+# https://www.eran.org.il/articles/דיכאון-וחרדה

@@ -1,0 +1,250 @@
+/* ============================================================ */
+/* PTSD-Ai web client - phone-call style UI                    */
+/* ============================================================ */
+
+:root {
+  --bg: #0a0e1a;
+  --bg-2: #131826;
+  --surface: #1a2238;
+  --primary: #6ba4ff;
+  --primary-glow: rgba(107, 164, 255, 0.35);
+  --accent: #4ade80;
+  --danger: #ef4444;
+  --text: #e6ecf5;
+  --text-muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: radial-gradient(ellipse at top, var(--bg-2) 0%, var(--bg) 60%);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+@font-face {
+  font-family: 'Heebo';
+  src: url('https://fonts.gstatic.com/s/heebo/v26/NGS6v5_NC0k9P_v6ZUCbLRAHxK1EiSysd0BN.woff2') format('woff2');
+  font-display: swap;
+  font-weight: 400 700;
+}
+
+.app {
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
+}
+
+/* ---------- Screens ---------- */
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  animation: fadeIn 0.4s ease;
+}
+
+.screen.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Idle screen ---------- */
+.hero { margin-bottom: 8px; }
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #fff 0%, #b8c5e0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+.call-btn {
+  appearance: none;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 8px;
+  font-family: inherit;
+}
+
+.call-btn__inner {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #4f81e0 0%, #2c5fc7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 6px rgba(79, 129, 224, 0.12),
+    0 0 60px var(--primary-glow),
+    0 12px 32px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.3s ease;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+.call-btn:hover .call-btn__inner {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 0 8px rgba(79, 129, 224, 0.16),
+    0 0 80px var(--primary-glow),
+    0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+.call-btn:active .call-btn__inner {
+  transform: scale(0.97);
+}
+
+.call-btn__label {
+  font-size: 15px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(79, 129, 224, 0.12), 0 0 60px var(--primary-glow), 0 12px 32px rgba(0, 0, 0, 0.4); }
+  50%      { box-shadow: 0 0 0 12px rgba(79, 129, 224, 0.06), 0 0 90px var(--primary-glow), 0 12px 32px rgba(0, 0, 0, 0.4); }
+}
+
+.disclaimer {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  margin-top: 16px;
+}
+
+.disclaimer strong {
+  color: var(--primary);
+  font-weight: 600;
+  unicode-bidi: plaintext;
+}
+
+/* ---------- Call screen ---------- */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.status-dot.listening {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.2);
+  animation: glow 1.5s ease-in-out infinite;
+}
+
+.status-dot.speaking {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-glow);
+  animation: glow 0.8s ease-in-out infinite;
+}
+
+.status-dot.thinking {
+  background: #f59e0b;
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.visualizer {
+  width: 100%;
+  max-width: 320px;
+  height: 120px;
+}
+
+.timer {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+.hangup-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+  transition: transform 0.15s, box-shadow 0.3s;
+  margin-top: 8px;
+}
+
+.hangup-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 12px 32px rgba(239, 68, 68, 0.5);
+}
+
+.hangup-btn:active {
+  transform: scale(0.95);
+}
+
+.hangup-btn svg {
+  transform: rotate(135deg);
+}
+
+/* ---------- Mobile tweaks ---------- */
+@media (max-width: 380px) {
+  .title { font-size: 26px; }
+  .call-btn__inner { width: 116px; height: 116px; }
+}

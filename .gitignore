@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Data - don't commit articles or vector DB to git
+data/articles/*
+!data/articles/.gitkeep
+qdrant_storage/
+*.sqlite
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Audio/transcripts (privacy)
+recordings/
+transcripts/
+*.wav
+*.mp3
+*.opus
+
+# Models (downloaded)
+models/
+*.bin
+*.safetensors
+*.gguf
+
+# Docker
+docker-compose.override.yml
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+terraform.tfvars
+
+# Scaffold / local bookkeeping
+PTSD-Ai.tar.gz
+mnt/
+.remember/
+

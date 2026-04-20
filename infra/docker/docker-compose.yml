@@ -1,0 +1,112 @@
+version: "3.9"
+
+# ============================================================================
+# PTSD-Ai - local development stack
+# Run: docker-compose up -d
+# ============================================================================
+
+services:
+
+  # --- Vector database for RAG ---
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    container_name: ptsd-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"  # REST
+      - "6334:6334"  # gRPC
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+
+  # --- (Optional) ivrit-ai Hebrew Whisper server ---
+  # Provides Hebrew STT via OpenAI-compatible API
+  # Comment out if using Azure or OpenAI Whisper API
+  ivrit-stt:
+    image: fedirz/faster-whisper-server:latest-cuda
+    container_name: ptsd-ivrit-stt
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - whisper_models:/root/.cache/huggingface
+    environment:
+      WHISPER__MODEL: ivrit-ai/whisper-large-v3-turbo
+      WHISPER__INFERENCE_DEVICE: cuda  # change to 'cpu' if no GPU
+      WHISPER__COMPUTE_TYPE: float16
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # --- (Optional) Gemma 4 self-hosted via vLLM ---
+  # Only enable if LLM_PROVIDER=gemma_local
+  # Requires significant GPU memory (~60GB for 31B at fp16)
+  # gemma:
+  #   image: vllm/vllm-openai:latest
+  #   container_name: ptsd-gemma
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8002:8000"
+  #   volumes:
+  #     - hf_models:/root/.cache/huggingface
+  #   command: >
+  #     --model google/gemma-4-31b-it
+  #     --host 0.0.0.0
+  #     --port 8000
+  #     --max-model-len 32768
+  #     --gpu-memory-utilization 0.95
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 2
+  #             capabilities: [gpu]
+
+  # --- Voice agent (LiveKit worker) ---
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ptsd-agent
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      GEMMA_LOCAL_URL: http://gemma:8000/v1
+    depends_on:
+      - qdrant
+    command: python -m agent.main start
+
+  # --- Token server (issues LiveKit JWTs to web clients) ---
+  token-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ptsd-tokens
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080:8080"
+    command: uvicorn agent.token_server:app --host 0.0.0.0 --port 8080
+
+  # --- Web frontend (static) ---
+  web:
+    image: nginx:alpine
+    container_name: ptsd-web
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./frontend/web:/usr/share/nginx/html:ro
+      - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  qdrant_storage:
+  whisper_models:
+  hf_models:

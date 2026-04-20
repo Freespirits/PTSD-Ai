@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          # Install only lint/test essentials (full requirements too heavy for CI)
+          pip install ruff mypy pytest pytest-asyncio pydantic pydantic-settings qdrant-client
+
+      - name: Ruff (lint)
+        run: ruff check agent ingestion tests
+
+      - name: Pytest
+        run: pytest tests/ -v
+        env:
+          # Dummy values so config loads
+          ANTHROPIC_API_KEY: dummy
+          ELEVENLABS_API_KEY: dummy
+          COHERE_API_KEY: dummy
+          LIVEKIT_API_KEY: dummy
+          LIVEKIT_API_SECRET: dummy
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: ptsd-ai/agent:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
